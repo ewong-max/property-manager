@@ -1,0 +1,173 @@
+================================================================================
+  PROPERTY MANAGER
+  A Digital Rental Property Management System
+================================================================================
+
+INTRODUCTION
+------------
+Property Manager is a desktop application designed for Malaysian property
+investors and investment holding companies to manage their rental property
+portfolios efficiently. It consolidates property records, tenancy agreements,
+income tracking, and expense management into a single system — and generates
+tax-ready financial statements at the click of a button.
+
+The application runs locally on your computer, keeping all data private and
+accessible without an internet connection.
+
+
+================================================================================
+KEY FEATURES
+================================================================================
+
+1. MULTI-COMPANY PORTFOLIO MANAGEMENT
+--------------------------------------
+  - Manage multiple investment holding companies (Sdn Bhd) under one system
+  - Each company maintains its own portfolio of properties
+  - View consolidated or per-company reporting
+
+
+2. PROPERTY MANAGEMENT
+-----------------------
+  - Record full property details: address, type, title type (Freehold/Leasehold)
+  - Track purchase price, purchase date, annual assessment, and quit rent values
+  - Supports both residential and commercial property types
+  - Quick overview of occupancy status across all properties
+
+
+3. TENANCY MANAGEMENT
+----------------------
+  - Maintain complete tenancy records including tenant name, IC/SSM number,
+    and contact details
+  - Track rental amount, deposit, tenancy start and end dates
+  - Record tenancy terminations with reason and date
+  - Full history of past and present tenancies per property
+
+
+4. RENTAL INCOME TRACKING
+--------------------------
+  - Record monthly rental payments against each tenancy
+  - Supports both Rental Income and Forfeited Deposit Income entries
+  - Monthly breakdown provides a clear picture of cash collection
+  - Instantly identify months with missing or outstanding payments
+
+
+5. EXPENSE MANAGEMENT
+----------------------
+  - Record property expenses by category:
+      • Repair & Maintenance
+      • Assessment (Cukai Pintu)
+      • Quit Rent (Cukai Tanah)
+      • Insurance
+      • Management Fee
+      • Utilities
+      • Professional Fee
+      • Other
+  - Attach invoice files (PDF, JPG, PNG) to each expense record
+  - When Assessment or Quit Rent is selected, the system automatically
+    pre-fills the amount from the property record
+
+  AI INVOICE ANALYSIS (Powered by Google Gemini)
+  -----------------------------------------------
+  Upload a scanned invoice or receipt and the system automatically reads and
+  fills in the expense details — vendor name, invoice number, date, amount,
+  and category. Supports PDF and image formats. Saves time and reduces
+  manual data entry errors.
+
+
+6. DASHBOARD & ANALYTICS
+-------------------------
+  - Year of Assessment (YA) selector to view any year's performance
+  - Portfolio-wide summary: total income, total expenses, and net rental income
+  - Property cards showing each property's YA income, expenses, net figure,
+    and current tenant at a glance
+  - Historical Performance Chart displaying the last 6 years of gross income,
+    total expenses, and net income as a trend chart
+  - Quick-action buttons on each property card:
+      • Add Income  — opens income entry directly for that property's tenant
+      • Add Expense — opens expense entry pre-filled with that property
+      • View Report — jumps straight to that property's financial statement
+      • Excel Export — downloads the property's Excel statement instantly
+
+
+================================================================================
+REPORTING
+================================================================================
+
+The reporting module generates formal rental income statements suitable for
+tax filing under the Malaysian Income Tax Act 1967 (ITA 1967).
+
+YEAR OF ASSESSMENT (YA) STATEMENTS
+-------------------------------------
+Each statement covers one Year of Assessment and is structured in four parts:
+
+  Part A — Property Information
+    Details of the property, owner/company, address, and tenancy particulars
+    for the assessment year.
+
+  Part B — Gross Rental Income
+    Month-by-month rental income table showing amounts received for each
+    month of the year, with a full-year total.
+
+  Part C — Allowable Expenses
+    Expenses grouped by category, with individual line items and subtotals
+    per category. Categories follow standard Malaysian rental income
+    deductible expense classifications.
+
+  Part D — Net Rental Income
+    Summary showing Gross Income less Total Expenses, arriving at the
+    Net Rental Income figure for the Year of Assessment.
+
+
+MULTI-PROPERTY REPORTING
+--------------------------
+  - Select any combination of properties for a combined report
+  - "Select All" option generates a report covering the entire portfolio
+    in a single document
+  - Each property's statement appears as a separate section
+  - All properties share the same Year of Assessment for easy comparison
+
+
+EXPORT OPTIONS
+--------------
+  PDF Export
+    Generates a professionally formatted PDF statement ready for submission
+    or filing. Multi-property selections produce a single PDF with one
+    statement per page.
+
+  Excel Export (Single Property)
+    Downloads an Excel workbook (.xlsx) for the selected property and YA,
+    containing income and expense details in spreadsheet format for further
+    analysis or record-keeping.
+
+  Excel Export (Multiple Properties)
+    Downloads a single Excel workbook containing:
+      • A Summary sheet comparing all selected properties side by side
+      • Individual sheets per property with full income and expense detail
+
+
+================================================================================
+GETTING STARTED
+================================================================================
+
+1. Launch the application by double-clicking PropertyManager.exe
+2. Open your browser to http://localhost:3001 (opens automatically)
+3. Log in with your PIN (default: 1234 — change in config.env)
+4. Add your company under the Companies menu
+5. Add your properties under Properties
+6. Add tenancy agreements and start recording income and expenses
+7. Generate reports from the Reports menu or directly from the Dashboard
+
+
+CONFIGURATION
+-------------
+Edit the config.env file (located in the same folder as PropertyManager.exe)
+to change settings:
+
+  PIN            Your login PIN (default: 1234)
+  PORT           Network port (default: 3001)
+  GEMINI_API_KEY Your Google Gemini API key (required for AI invoice analysis)
+
+
+================================================================================
+  Property Manager  |  Built for Malaysian Property Investors
+================================================================================

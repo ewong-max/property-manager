@@ -1,0 +1,82 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id                  Int        @id @default(autoincrement())
+  name                String
+  registration_number String     @unique
+  address             String
+  contact_person      String
+  created_at          DateTime   @default(now())
+  properties          Property[]
+}
+
+model Property {
+  id                Int        @id @default(autoincrement())
+  company_id        Int
+  property_name     String
+  address           String
+  title_type        String
+  property_type     String
+  purchase_date     DateTime?
+  purchase_price    Float?
+  annual_assessment Float?
+  quit_rent         Float?
+  created_at        DateTime   @default(now())
+  company           Company    @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  tenancies         Tenancy[]
+  expenses          Expense[]
+  rental_incomes    RentalIncome[]
+}
+
+model Tenancy {
+  id                Int            @id @default(autoincrement())
+  property_id       Int
+  tenant_name       String
+  tenant_ic_or_ssm  String
+  contact_number    String
+  rental_amount     Float
+  deposit_amount    Float          @default(0)
+  tenancy_start_date DateTime
+  tenancy_end_date  DateTime?
+  status            String         @default("active")
+  termination_date  DateTime?
+  termination_reason String?
+  created_at        DateTime       @default(now())
+  property          Property       @relation(fields: [property_id], references: [id], onDelete: Cascade)
+  rental_incomes    RentalIncome[]
+}
+
+model Expense {
+  id               Int      @id @default(autoincrement())
+  property_id      Int
+  expense_date     DateTime
+  category         String
+  description      String
+  amount           Float
+  invoice_number   String?
+  vendor_name      String
+  invoice_file_path String?
+  created_at       DateTime @default(now())
+  property         Property @relation(fields: [property_id], references: [id], onDelete: Cascade)
+}
+
+model RentalIncome {
+  id              Int      @id @default(autoincrement())
+  tenancy_id      Int
+  property_id     Int
+  income_month    String
+  amount_received Float
+  payment_date    DateTime
+  notes           String?
+  created_at      DateTime @default(now())
+  tenancy         Tenancy  @relation(fields: [tenancy_id], references: [id], onDelete: Cascade)
+  property        Property @relation(fields: [property_id], references: [id], onDelete: Cascade)
+}

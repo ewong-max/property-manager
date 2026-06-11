@@ -1,0 +1,31 @@
+﻿# Dependencies
+node_modules/
+
+# Build outputs
+server/dist/
+client/dist/
+
+# Database files (dev data)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Uploads (user files)
+uploads/
+!uploads/.gitkeep
+
+# Environment / secrets
+.env
+*.env
+
+# Release binaries
+release/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
