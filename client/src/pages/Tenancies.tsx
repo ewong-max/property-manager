@@ -3,8 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import {
   getTenancies, createTenancy, updateTenancy, terminateTenancy,
-  getProperties, createIncome, deleteIncome, getIncome,
-  type Tenancy, type Property,
+  getProperties, createIncome, updateIncome, deleteIncome, getIncome,
+  type Tenancy, type Property, type RentalIncome,
   formatRM, formatDate,
 } from '@/lib/api';
 import { PageHeader } from '@/components/Layout';
@@ -54,6 +54,7 @@ export default function Tenancies() {
 
   const [detailTenancy, setDetailTenancy] = useState<Tenancy | null>(null);
   const [deleteIncomeTarget, setDeleteIncomeTarget] = useState<number | null>(null);
+  const [editingIncome, setEditingIncome] = useState<RentalIncome | null>(null);
   const [autoIncomeTriggered, setAutoIncomeTriggered] = useState(false);
 
   const { data: tenancies = [], isLoading } = useQuery({
@@ -131,6 +132,20 @@ export default function Tenancies() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const updateIncomeMut = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<RentalIncome> }) =>
+      updateIncome(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['income-for-tenancy'] });
+      qc.invalidateQueries({ queryKey: ['dashboard'] });
+      toast.success('Income updated');
+      setIncomeOpen(false);
+      setEditingIncome(null);
+      setIncomeForm({ income_month: '', amount_received: '', payment_date: '', notes: '', income_type: 'Rental Income' });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const deleteIncomeMut = useMutation({
     mutationFn: deleteIncome,
     onSuccess: () => {
@@ -171,19 +186,48 @@ export default function Tenancies() {
     else createMut.mutate(data);
   }
 
+  function openEditIncome(inc: RentalIncome) {
+    const isForfeited = inc.notes?.startsWith('[Forfeited Deposit]');
+    const baseNotes = isForfeited
+      ? (inc.notes?.slice('[Forfeited Deposit]'.length).trimStart() || '')
+      : (inc.notes || '');
+    setEditingIncome(inc);
+    setIncomeForTenancy(detailTenancy);
+    setIncomeForm({
+      income_month: inc.income_month,
+      amount_received: String(inc.amount_received),
+      payment_date: String(inc.payment_date).slice(0, 10),
+      notes: baseNotes,
+      income_type: isForfeited ? 'Forfeited Deposit Income' : 'Rental Income',
+    });
+    setIncomeOpen(true);
+  }
+
   function handleIncomeSubmit(e: React.FormEvent) {
     e.preventDefault();
     const notes = incomeForm.income_type === 'Forfeited Deposit Income'
       ? `[Forfeited Deposit]${incomeForm.notes ? ' ' + incomeForm.notes : ''}`
       : incomeForm.notes;
-    incomeMut.mutate({
-      tenancy_id: incomeForTenancy!.id,
-      property_id: incomeForTenancy!.property_id,
-      income_month: incomeForm.income_month,
-      amount_received: Number(incomeForm.amount_received),
-      payment_date: incomeForm.payment_date,
-      notes: notes || undefined,
-    });
+    if (editingIncome) {
+      updateIncomeMut.mutate({
+        id: editingIncome.id,
+        data: {
+          income_month: incomeForm.income_month,
+          amount_received: Number(incomeForm.amount_received),
+          payment_date: incomeForm.payment_date,
+          notes: notes || undefined,
+        },
+      });
+    } else {
+      incomeMut.mutate({
+        tenancy_id: incomeForTenancy!.id,
+        property_id: incomeForTenancy!.property_id,
+        income_month: incomeForm.income_month,
+        amount_received: Number(incomeForm.amount_received),
+        payment_date: incomeForm.payment_date,
+        notes: notes || undefined,
+      });
+    }
   }
 
   const saving = createMut.isPending || updateMut.isPending;
@@ -398,11 +442,11 @@ export default function Tenancies() {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* ── Record income ── */}
-        <Dialog open={incomeOpen} onOpenChange={setIncomeOpen}>
+        {/* ── Record / Edit income ── */}
+        <Dialog open={incomeOpen} onOpenChange={v => { setIncomeOpen(v); if (!v) { setEditingIncome(null); setIncomeForm({ income_month: '', amount_received: '', payment_date: '', notes: '', income_type: 'Rental Income' }); } }}>
           <DialogContent className="max-w-sm">
             <DialogHeader>
-              <DialogTitle>Record Income</DialogTitle>
+              <DialogTitle>{editingIncome ? 'Edit Income Record' : 'Record Income'}</DialogTitle>
               <DialogDescription>
                 {incomeForTenancy?.tenant_name} · {incomeForTenancy?.property?.property_name}
               </DialogDescription>
@@ -452,9 +496,9 @@ export default function Tenancies() {
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setIncomeOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={incomeMut.isPending}>
-                  {incomeMut.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Record
+                <Button type="submit" disabled={incomeMut.isPending || updateIncomeMut.isPending}>
+                  {(incomeMut.isPending || updateIncomeMut.isPending) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {editingIncome ? 'Save Changes' : 'Record'}
                 </Button>
               </DialogFooter>
             </form>
@@ -511,7 +555,14 @@ export default function Tenancies() {
                             <span className="text-xs text-muted-foreground">{formatDate(inc.payment_date)}</span>
                             <Button
                               variant="ghost" size="sm"
-                              className="h-7 w-7 p-0 ml-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="h-7 w-7 p-0 ml-1 text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => openEditIncome(inc)}
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              variant="ghost" size="sm"
+                              className="h-7 w-7 p-0 ml-1 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                               onClick={() => setDeleteIncomeTarget(inc.id)}
                             >
                               <Trash2 className="w-3 h-3" />
