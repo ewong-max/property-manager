@@ -31,7 +31,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   const {
     property_id, tenant_name, tenant_ic_or_ssm, contact_number,
-    rental_amount, deposit_amount, tenancy_start_date, tenancy_end_date,
+    rental_amount, deposit_amount, utilities_deposit, tenancy_start_date, tenancy_end_date,
   } = req.body;
 
   // Ensure no active tenancy exists for this property
@@ -50,6 +50,7 @@ router.post('/', async (req, res) => {
       contact_number,
       rental_amount: Number(rental_amount),
       deposit_amount: deposit_amount ? Number(deposit_amount) : 0,
+      utilities_deposit: utilities_deposit ? Number(utilities_deposit) : 0,
       tenancy_start_date: new Date(tenancy_start_date),
       tenancy_end_date: tenancy_end_date ? new Date(tenancy_end_date) : null,
       status: 'active',
@@ -61,7 +62,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const {
     tenant_name, tenant_ic_or_ssm, contact_number,
-    rental_amount, deposit_amount, tenancy_start_date, tenancy_end_date,
+    rental_amount, deposit_amount, utilities_deposit, tenancy_start_date, tenancy_end_date,
   } = req.body;
   const tenancy = await prisma.tenancy.update({
     where: { id: Number(req.params.id) },
@@ -71,6 +72,7 @@ router.put('/:id', async (req, res) => {
       contact_number,
       rental_amount: Number(rental_amount),
       deposit_amount: deposit_amount ? Number(deposit_amount) : 0,
+      utilities_deposit: utilities_deposit ? Number(utilities_deposit) : 0,
       tenancy_start_date: new Date(tenancy_start_date),
       tenancy_end_date: tenancy_end_date ? new Date(tenancy_end_date) : null,
     },

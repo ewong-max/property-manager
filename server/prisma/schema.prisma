@@ -42,8 +42,9 @@ model Tenancy {
   tenant_name       String
   tenant_ic_or_ssm  String
   contact_number    String
-  rental_amount     Float
-  deposit_amount    Float          @default(0)
+  rental_amount       Float
+  deposit_amount      Float          @default(0)
+  utilities_deposit   Float          @default(0)
   tenancy_start_date DateTime
   tenancy_end_date  DateTime?
   status            String         @default("active")

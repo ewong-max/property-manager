@@ -29,7 +29,7 @@ const INCOME_TYPES = ['Rental Income', 'Forfeited Deposit Income'] as const;
 const EMPTY_TENANCY = {
   property_id: '' as unknown as number,
   tenant_name: '', tenant_ic_or_ssm: '', contact_number: '',
-  rental_amount: '', deposit_amount: '',
+  rental_amount: '', deposit_amount: '', utilities_deposit: '',
   tenancy_start_date: '', tenancy_end_date: '',
 };
 
@@ -167,6 +167,7 @@ export default function Tenancies() {
       contact_number: t.contact_number,
       rental_amount: String(t.rental_amount),
       deposit_amount: String(t.deposit_amount),
+      utilities_deposit: String(t.utilities_deposit ?? 0),
       tenancy_start_date: t.tenancy_start_date.slice(0, 10),
       tenancy_end_date: t.tenancy_end_date ? t.tenancy_end_date.slice(0, 10) : '',
     });
@@ -180,6 +181,7 @@ export default function Tenancies() {
       property_id: Number(form.property_id),
       rental_amount: Number(form.rental_amount),
       deposit_amount: Number(form.deposit_amount) || 0,
+      utilities_deposit: Number(form.utilities_deposit) || 0,
       tenancy_end_date: form.tenancy_end_date || undefined,
     };
     if (editingTenancy) updateMut.mutate({ id: editingTenancy.id, data });
@@ -370,6 +372,10 @@ export default function Tenancies() {
                   <Input type="number" step="0.01" min="0" value={form.deposit_amount} onChange={e => setForm(f => ({ ...f, deposit_amount: e.target.value }))} placeholder="0.00" />
                 </div>
                 <div className="space-y-1.5">
+                  <Label>Utilities Deposit (RM)</Label>
+                  <Input type="number" step="0.01" min="0" value={form.utilities_deposit} onChange={e => setForm(f => ({ ...f, utilities_deposit: e.target.value }))} placeholder="0.00" />
+                </div>
+                <div className="space-y-1.5">
                   <Label>Start Date <span className="text-destructive">*</span></Label>
                   <Input type="date" value={form.tenancy_start_date} onChange={e => setForm(f => ({ ...f, tenancy_start_date: e.target.value }))} required />
                 </div>
@@ -520,6 +526,7 @@ export default function Tenancies() {
                     ['Contact', detailTenancy.contact_number],
                     ['Monthly Rent', formatRM(detailTenancy.rental_amount)],
                     ['Security Deposit', formatRM(detailTenancy.deposit_amount)],
+                    ['Utilities Deposit', formatRM(detailTenancy.utilities_deposit ?? 0)],
                     ['Status', <Badge key="s" variant={detailTenancy.status === 'active' ? 'success' : 'secondary'} className="capitalize">{detailTenancy.status}</Badge>],
                     ['Start Date', formatDate(detailTenancy.tenancy_start_date)],
                     ['End Date', detailTenancy.tenancy_end_date ? formatDate(detailTenancy.tenancy_end_date) : 'Open-ended'],

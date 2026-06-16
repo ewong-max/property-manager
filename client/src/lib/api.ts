@@ -204,6 +204,7 @@ export interface Tenancy {
   contact_number: string;
   rental_amount: number;
   deposit_amount: number;
+  utilities_deposit: number;
   tenancy_start_date: string;
   tenancy_end_date?: string;
   status: 'active' | 'terminated';
