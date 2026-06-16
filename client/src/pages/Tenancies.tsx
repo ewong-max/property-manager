@@ -371,7 +371,7 @@ export default function Tenancies() {
                   </div>
                   <Input type="number" step="0.01" min="0" value={form.deposit_amount} onChange={e => setForm(f => ({ ...f, deposit_amount: e.target.value }))} placeholder="0.00" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 col-span-2">
                   <Label>Utilities Deposit (RM)</Label>
                   <Input type="number" step="0.01" min="0" value={form.utilities_deposit} onChange={e => setForm(f => ({ ...f, utilities_deposit: e.target.value }))} placeholder="0.00" />
                 </div>
