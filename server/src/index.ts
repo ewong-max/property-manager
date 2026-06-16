@@ -213,11 +213,28 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  const url = `http://localhost:${PORT}`;
-  console.log(`Property Manager running at ${url}`);
-  if (isPkg) {
-    // Auto-open browser on Windows
-    try { execSync(`start ${url}`); } catch { /* ignore */ }
+async function runMigrations() {
+  const prisma = (await import('./lib/prisma')).default;
+  // v1.2: add utilities_deposit — safe to run on older databases, ignored if column exists
+  try {
+    await prisma.$executeRawUnsafe(
+      `ALTER TABLE "Tenancy" ADD COLUMN "utilities_deposit" REAL NOT NULL DEFAULT 0`
+    );
+    console.log('DB migration: added utilities_deposit column');
+  } catch {
+    // Column already exists — nothing to do
   }
+}
+
+runMigrations().then(() => {
+  app.listen(PORT, () => {
+    const url = `http://localhost:${PORT}`;
+    console.log(`Property Manager running at ${url}`);
+    if (isPkg) {
+      try { execSync(`start ${url}`); } catch { /* ignore */ }
+    }
+  });
+}).catch(err => {
+  console.error('Startup migration failed:', err);
+  process.exit(1);
 });
