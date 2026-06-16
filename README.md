@@ -7,7 +7,7 @@ A standalone Windows desktop app for Malaysian property investors to track renta
 ## Download & Run
 
 1. Go to [**Releases**](https://github.com/ewong-max/property-manager/releases/latest)
-2. Download `PropertyManager-v1.0-windows.zip`
+2. Download `PropertyManager-v1.2-windows.zip`
 3. Extract to any folder
 4. Double-click **`PropertyManager.exe`**
 5. The app opens in your browser automatically — default PIN is **`1234`**
