@@ -350,7 +350,7 @@ export default function Tenancies() {
                   <Label>Contact No. <span className="text-destructive">*</span></Label>
                   <Input value={form.contact_number} onChange={e => setForm(f => ({ ...f, contact_number: e.target.value }))} required placeholder="e.g. 012-345 6789" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 col-span-2">
                   <div className="flex items-center gap-1.5">
                     <Label>Monthly Rent (RM) <span className="text-destructive">*</span></Label>
                   </div>
@@ -371,7 +371,7 @@ export default function Tenancies() {
                   </div>
                   <Input type="number" step="0.01" min="0" value={form.deposit_amount} onChange={e => setForm(f => ({ ...f, deposit_amount: e.target.value }))} placeholder="0.00" />
                 </div>
-                <div className="space-y-1.5 col-span-2">
+                <div className="space-y-1.5">
                   <Label>Utilities Deposit (RM)</Label>
                   <Input type="number" step="0.01" min="0" value={form.utilities_deposit} onChange={e => setForm(f => ({ ...f, utilities_deposit: e.target.value }))} placeholder="0.00" />
                 </div>
