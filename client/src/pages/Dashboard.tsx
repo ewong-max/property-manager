@@ -9,11 +9,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { PageHeader } from '@/components/Layout';
 import {
   Home, Building2, TrendingUp, TrendingDown, ArrowRight,
-  FileSpreadsheet, FileBarChart2, Users, DollarSign, Receipt,
+  FileSpreadsheet, FileBarChart2, Users, DollarSign, Receipt, ChevronDown,
 } from 'lucide-react';
 import {
   ResponsiveContainer, ComposedChart, Bar, Line,
@@ -171,8 +173,14 @@ function PropertyCard({ prop, year }: { prop: PropertyStat; year: number }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [selectedYear, setSelectedYear] = useState(String(CURRENT_YEAR));
-  const [selectedCompany, setSelectedCompany] = useState('all');
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const year = Number(selectedYear);
+
+  function toggleCompany(name: string) {
+    setSelectedCompanies(prev =>
+      prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
+    );
+  }
 
   const { data: overview, isLoading: overviewLoading } = useQuery<DashboardOverview>({
     queryKey: ['dashboard-overview', year],
@@ -195,11 +203,11 @@ export default function Dashboard() {
       .sort();
   }, [overview?.properties]);
 
-  // Filter properties by selected company
+  // Filter properties by selected companies (empty = all)
   const filteredProperties = useMemo(() => {
     const all = overview?.properties ?? [];
-    return selectedCompany === 'all' ? all : all.filter(p => p.company.name === selectedCompany);
-  }, [overview?.properties, selectedCompany]);
+    return selectedCompanies.length === 0 ? all : all.filter(p => selectedCompanies.includes(p.company.name));
+  }, [overview?.properties, selectedCompanies]);
 
   // Recompute totals from filtered properties
   const filteredIncome = filteredProperties.reduce((s, p) => s + p.income, 0);
@@ -253,15 +261,40 @@ export default function Dashboard() {
           {companies.length > 1 && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Company</span>
-              <Select value={selectedCompany} onValueChange={setSelectedCompany}>
-                <SelectTrigger className="w-44">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Companies</SelectItem>
-                  {companies.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-44 justify-between font-normal">
+                    <span className="truncate">
+                      {selectedCompanies.length === 0
+                        ? 'All Companies'
+                        : selectedCompanies.length === 1
+                        ? selectedCompanies[0]
+                        : `${selectedCompanies.length} Companies`}
+                    </span>
+                    <ChevronDown className="w-4 h-4 ml-2 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-52 p-2" align="end">
+                  <div
+                    className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-muted text-sm"
+                    onClick={() => setSelectedCompanies([])}
+                  >
+                    <Checkbox checked={selectedCompanies.length === 0} onCheckedChange={() => setSelectedCompanies([])} />
+                    <span>All Companies</span>
+                  </div>
+                  <Separator className="my-1" />
+                  {companies.map(c => (
+                    <div
+                      key={c}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer hover:bg-muted text-sm"
+                      onClick={() => toggleCompany(c)}
+                    >
+                      <Checkbox checked={selectedCompanies.includes(c)} onCheckedChange={() => toggleCompany(c)} />
+                      <span className="truncate">{c}</span>
+                    </div>
+                  ))}
+                </PopoverContent>
+              </Popover>
             </div>
           )}
           <div className="flex items-center gap-2">
@@ -308,7 +341,7 @@ export default function Dashboard() {
           <CardContent className="p-5 flex items-center justify-between flex-wrap gap-4">
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-                Net Rental Income — YA {year}{selectedCompany !== 'all' ? ` · ${selectedCompany}` : ''}
+                Net Rental Income — YA {year}{selectedCompanies.length === 1 ? ` · ${selectedCompanies[0]}` : selectedCompanies.length > 1 ? ` · ${selectedCompanies.length} Companies` : ''}
               </p>
               <p className={cn('text-3xl font-bold', filteredNet >= 0 ? 'text-emerald-600' : 'text-red-500')}>
                 {formatRM(filteredNet)}
