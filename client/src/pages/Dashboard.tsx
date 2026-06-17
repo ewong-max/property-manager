@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -171,6 +171,7 @@ function PropertyCard({ prop, year }: { prop: PropertyStat; year: number }) {
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [selectedYear, setSelectedYear] = useState(String(CURRENT_YEAR));
+  const [selectedCompany, setSelectedCompany] = useState('all');
   const year = Number(selectedYear);
 
   const { data: overview, isLoading: overviewLoading } = useQuery<DashboardOverview>({
@@ -184,31 +185,53 @@ export default function Dashboard() {
     staleTime: 60_000,
   });
 
+  // Derive unique company names from overview data
+  const companies = useMemo(() => {
+    if (!overview?.properties) return [];
+    const seen = new Set<string>();
+    return overview.properties
+      .map(p => p.company.name)
+      .filter(name => { if (seen.has(name)) return false; seen.add(name); return true; })
+      .sort();
+  }, [overview?.properties]);
+
+  // Filter properties by selected company
+  const filteredProperties = useMemo(() => {
+    const all = overview?.properties ?? [];
+    return selectedCompany === 'all' ? all : all.filter(p => p.company.name === selectedCompany);
+  }, [overview?.properties, selectedCompany]);
+
+  // Recompute totals from filtered properties
+  const filteredIncome = filteredProperties.reduce((s, p) => s + p.income, 0);
+  const filteredExpenses = filteredProperties.reduce((s, p) => s + p.expenses, 0);
+  const filteredNet = filteredIncome - filteredExpenses;
+  const filteredActiveTenants = filteredProperties.filter(p => p.activeTenancy).length;
+
   const statCards = [
     {
       label: 'Total Properties',
-      value: overview?.totalProperties ?? 0,
+      value: filteredProperties.length || (overviewLoading ? 0 : 0),
       icon: Home,
       color: 'text-blue-600',
       bg: 'bg-blue-50',
     },
     {
       label: 'Active Tenants',
-      value: overview?.totalActiveTenants ?? 0,
+      value: filteredActiveTenants,
       icon: Building2,
       color: 'text-violet-600',
       bg: 'bg-violet-50',
     },
     {
       label: `Gross Income YA ${year}`,
-      value: formatRM(overview?.totalIncome ?? 0),
+      value: formatRM(filteredIncome),
       icon: TrendingUp,
       color: 'text-emerald-600',
       bg: 'bg-emerald-50',
     },
     {
       label: `Total Expenses YA ${year}`,
-      value: formatRM(overview?.totalExpenses ?? 0),
+      value: formatRM(filteredExpenses),
       icon: TrendingDown,
       color: 'text-red-500',
       bg: 'bg-red-50',
@@ -226,16 +249,32 @@ export default function Dashboard() {
           title="Dashboard"
           description={`Portfolio overview — Year of Assessment ${year}`}
         />
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-sm text-muted-foreground">Year of Assessment</span>
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-28">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center gap-4 shrink-0 flex-wrap">
+          {companies.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Company</span>
+              <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                <SelectTrigger className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Companies</SelectItem>
+                  {companies.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Year of Assessment</span>
+            <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <SelectTrigger className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {YEARS.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -269,13 +308,13 @@ export default function Dashboard() {
           <CardContent className="p-5 flex items-center justify-between flex-wrap gap-4">
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">
-                Net Rental Income — YA {year}
+                Net Rental Income — YA {year}{selectedCompany !== 'all' ? ` · ${selectedCompany}` : ''}
               </p>
-              <p className={cn('text-3xl font-bold', overview.netIncome >= 0 ? 'text-emerald-600' : 'text-red-500')}>
-                {formatRM(overview.netIncome)}
+              <p className={cn('text-3xl font-bold', filteredNet >= 0 ? 'text-emerald-600' : 'text-red-500')}>
+                {formatRM(filteredNet)}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                {formatRM(overview.totalIncome)} income — {formatRM(overview.totalExpenses)} expenses
+                {formatRM(filteredIncome)} income — {formatRM(filteredExpenses)} expenses
               </p>
             </div>
             <div className="flex gap-2">
@@ -353,7 +392,7 @@ export default function Dashboard() {
           </h2>
           {overview && (
             <span className="text-xs text-muted-foreground">
-              {overview.totalActiveTenants} of {overview.totalProperties} occupied
+              {filteredActiveTenants} of {filteredProperties.length} occupied
             </span>
           )}
         </div>
@@ -362,7 +401,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {[1, 2, 3].map(i => <div key={i} className="h-64 bg-muted animate-pulse rounded-xl" />)}
           </div>
-        ) : !overview?.properties.length ? (
+        ) : !filteredProperties.length ? (
           <Card>
             <CardContent className="flex flex-col items-center py-16 text-center text-muted-foreground">
               <Home className="w-10 h-10 mb-3 opacity-20" />
@@ -371,7 +410,7 @@ export default function Dashboard() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-            {overview.properties.map(prop => (
+            {filteredProperties.map(prop => (
               <PropertyCard key={prop.id} prop={prop} year={year} />
             ))}
           </div>
